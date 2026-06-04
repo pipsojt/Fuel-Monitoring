@@ -501,13 +501,17 @@ uploadBtn.addEventListener("click", async () => {
                 const exifData = await exifr.parse(file);
 
                 const capturedAt =
-                    exifData?.DateTimeOriginal || null;
+                    exifData?.DateTimeOriginal ??
+                    exifData?.CreateDate ??
+                    null;
 
                 const latitude =
-                    exifData?.latitude || null;
+                    exifData?.latitude ??
+                    null;
 
                 const longitude =
-                    exifData?.longitude || null;
+                    exifData?.longitude ??
+                    null;
 
                 console.log({
                     file:file.name,
