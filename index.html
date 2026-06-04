@@ -327,7 +327,7 @@ input[type=file]{
 
     <div class="header">
         <div class="logo">
-            Photo<span>Drive</span>
+            Fuel <span>Monitoring</span>
         </div>
 
         <div class="stats">
@@ -350,7 +350,7 @@ input[type=file]{
             <div class="upload-icon">📸</div>
 
             <div class="upload-title">
-                Upload Photos
+                Upload Photo Here
             </div>
 
             <div class="upload-subtitle">
@@ -396,6 +396,8 @@ input[type=file]{
     </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
 
 <script>
 
@@ -491,46 +493,78 @@ uploadBtn.addEventListener("click", async () => {
 
         reader.onload = async function(){
 
-            const base64 =
-                reader.result.split(",")[1];
+            const base64 = reader.result.split(",")[1];
 
             try{
 
-                await fetch(
-                  "https://script.google.com/macros/s/AKfycbwcuqlunyzKZiP1-G47L26h4J4aTI4xJ8LAfL4gknzuGQw-gli1NEaT5Kmwo_ttBi76pg/exec",
-                  {
+                // READ EXIF DATA
+                const exifData = await exifr.parse(file);
+
+                const capturedAt =
+                    exifData?.DateTimeOriginal || null;
+
+                const latitude =
+                    exifData?.latitude || null;
+
+                const longitude =
+                    exifData?.longitude || null;
+
+                console.log({
+                    file:file.name,
+                    capturedAt,
+                    latitude,
+                    longitude
+                });
+
+                const response = await fetch(
+                "https://script.google.com/macros/s/AKfycbwcuqlunyzKZiP1-G47L26h4J4aTI4xJ8LAfL4gknzuGQw-gli1NEaT5Kmwo_ttBi76pg/exec",
+                {
                     method:"POST",
                     body: JSON.stringify({
-                    municipality: municipality,
-                    uploadDate: uploadDate,
-                    fileName: file.name,
-                    mimeType: file.type,
-                    file: base64
-                })
-                  }
+                        municipality,
+                        uploadDate,
+                        fileName:file.name,
+                        mimeType:file.type,
+                        file:base64,
+
+                        // EXIF DATA
+                        capturedAt,
+                        latitude,
+                        longitude
+                    })
+                }
                 );
+
+                const result =
+                    await response.text();
+
+                console.log(result);
 
                 uploaded++;
 
-                uploadedFiles.textContent = uploaded;
+                uploadedFiles.textContent =
+                    uploaded;
 
                 const percent =
-                  Math.round(
+                Math.round(
                     (uploaded/files.length)*100
-                  );
+                );
 
                 progressBar.style.width =
-                  percent + "%";
+                    percent + "%";
 
                 if(uploaded === files.length){
+
                     status.innerHTML =
-                      "✅ Upload complete";
+                    "✔ Upload complete!";
                 }
 
             }catch(err){
 
+                console.error(err);
+
                 status.innerHTML =
-                  "❌ Upload failed";
+                "❌ Upload failed!";
             }
         };
 
