@@ -505,13 +505,53 @@ uploadBtn.addEventListener("click", async () => {
                     exifData?.CreateDate ??
                     null;
 
-                const latitude =
+                let latitude =
                     exifData?.latitude ??
                     null;
 
-                const longitude =
+                let longitude =
                     exifData?.longitude ??
                     null;
+
+                // If image has no GPS,
+                // use uploader's current location
+
+                if(latitude === null || longitude === null){
+
+                    try{
+
+                        const position =
+                            await new Promise(
+                                (resolve,reject)=>
+                                    navigator.geolocation.getCurrentPosition(
+                                        resolve,
+                                        reject,
+                                        {
+                                            enableHighAccuracy:true,
+                                            timeout:10000
+                                        }
+                                    )
+                            );
+
+                        latitude =
+                            position.coords.latitude;
+
+                        longitude =
+                            position.coords.longitude;
+
+                        console.log(
+                            "Using device GPS",
+                            latitude,
+                            longitude
+                        );
+
+                    }catch(error){
+
+                        console.log(
+                            "Location permission denied"
+                        );
+                    }
+                }
 
                 console.log({
                     file:file.name,
