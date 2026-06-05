@@ -158,7 +158,7 @@ Longitude: <span id="lng">...</span>
 <script>
 
 const SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbxpgZexokJpywn9Qzl0PqyULLorZYOq-EMe7O3v3I6Kf35qhgJINCbb5r9CCrYg1B4hhw/exec";
+"https://script.google.com/macros/s/AKfycby49-os3XOQaJezfVR6l4aXzXj368OoRVwHapcUgJIas0hydmKP8MulDVcQZWSkG8sJ/exec";
 
 const today = new Date().toISOString().split("T")[0];
 document.getElementById("date").value = today;
@@ -195,7 +195,7 @@ if(!municipality){
 }
 
 document.getElementById("preview").innerHTML =
-<img src="${URL.createObjectURL(file)}">;
+`<img src="${URL.createObjectURL(file)}">`;
 
 const reader = new FileReader();
 
