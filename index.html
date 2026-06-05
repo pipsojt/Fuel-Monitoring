@@ -38,11 +38,6 @@
 
         <div class="preview" id="preview">No image captured</div>
         <button onclick="openCamera()">📷 Capture Photo</button>
-
-        <button id="uploadBtn" onclick="uploadPhoto()" disabled>
-            ⬆ Upload Photo
-        </button>
-
         <input type="file" id="camera" accept="image/*" capture="environment" hidden>
         <div id="status" class="status"></div>
 
@@ -58,9 +53,6 @@
 
     let lat = "";
     let lng = "";
-
-    let selectedFile = null;
-    let selectedBase64 = null;
 
     navigator.geolocation.getCurrentPosition(
     pos => {
@@ -81,42 +73,23 @@
 
     document.getElementById("camera").addEventListener("change", function(e){
 
-        const file = e.target.files[0];
+    const file = e.target.files[0];
+    if(!file) return;
 
-        if(!file) return;
+    const municipality = document.getElementById("municipality").value;
+    if(!municipality){
+        alert("Select municipality first");
+        return;
+    }
 
-        selectedFile = file;
+    document.getElementById("preview").innerHTML =
+    `<img src="${URL.createObjectURL(file)}">`;
 
-        document.getElementById("preview").innerHTML =
-        `<img src="${URL.createObjectURL(file)}" style="max-width:100%;">`;
+    const reader = new FileReader();
 
-        const reader = new FileReader();
+    reader.onload = function(){
 
-        reader.onload = function(){
-
-            selectedBase64 = reader.result.split(",")[1];
-
-            document.getElementById("status").innerHTML =
-            "Photo captured. Click Upload Photo.";
-
-            document.getElementById("uploadBtn").disabled = false;
-        };
-
-        reader.readAsDataURL(file);
-
-    });
-
-    function uploadPhoto(){
-
-        if(!selectedFile || !selectedBase64){
-            alert("Capture a photo first.");
-            return;
-        }
-
-        const municipality =
-        document.getElementById("municipality").value;
-
-        document.getElementById("uploadBtn").disabled = true;
+        const base64 = reader.result.split(",")[1];
 
         document.getElementById("status").innerHTML =
         "<span class='loading'>Uploading...</span>";
@@ -124,61 +97,43 @@
         fetch(SCRIPT_URL, {
             method: "POST",
             body: new URLSearchParams({
-                municipality,
-                dateFolder: today,
-                fileName: selectedFile.name,
-                mimeType: selectedFile.type,
-                base64Data: selectedBase64,
-                latitude: lat,
-                longitude: lng
+            municipality,
+            dateFolder: today,
+            fileName: file.name,
+            mimeType: file.type,
+            base64Data: base64,
+            latitude: lat,
+            longitude: lng
             })
         })
 
         .then(async res => {
-
-            const text = await res.text();
-
+            const text = await res.text();   // IMPORTANT FIX
             console.log("RAW RESPONSE:", text);
-
             return JSON.parse(text);
         })
 
         .then(data => {
-
-            if(data.success){
-
+            if (data.success) {
                 document.getElementById("status").innerHTML =
-                "<span class='success'>Uploaded: " +
-                data.message +
-                "</span>";
-
-                selectedFile = null;
-                selectedBase64 = null;
-
-            }else{
-
+                "<span class='success'>" + data.message + "</span>";
+            } else {
                 document.getElementById("status").innerHTML =
-                "<span class='error'>" +
-                data.message +
-                "</span>";
-
-                document.getElementById("uploadBtn").disabled = false;
+                "<span class='error'>" + data.message + "</span>";
             }
-
         })
 
         .catch(err => {
-
             console.error(err);
-
             document.getElementById("status").innerHTML =
-            "<span class='error'>Upload failed</span>";
-
-            document.getElementById("uploadBtn").disabled = false;
-
+            "<span class='error'>Backend not reachable</span>";
         });
 
-    }
+    };
+
+    reader.readAsDataURL(file);
+
+    });
 
 </script>
 
