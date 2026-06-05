@@ -1,157 +1,72 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Fuel Monitoring System</title>
+<title>ZAMECO I Fuel Monitoring System</title>
 
-<style>
-
-body{
-    margin:0;
-    font-family:Segoe UI, sans-serif;
-    background:#0f172a;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:100vh;
-    padding:20px;
-}
-
-.card{
-    width:100%;
-    max-width:520px;
-    background:white;
-    border-radius:18px;
-    padding:22px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.3);
-}
-
-h1{
-    text-align:center;
-    margin-bottom:5px;
-    color:#0f172a;
-}
-
-.subtitle{
-    text-align:center;
-    font-size:13px;
-    color:#64748b;
-    margin-bottom:20px;
-}
-
-label{
-    font-weight:600;
-    font-size:14px;
-    color:#334155;
-}
-
-input,select{
-    width:95%;
-    padding:12px;
-    margin-top:6px;
-    margin-bottom:14px;
-    border-radius:10px;
-    border:1px solid #cbd5e1;
-    font-size:14px;
-}
-
-input[readonly]{
-    background:#f1f5f9;
-}
-
-.preview{
-    width:100%;
-    height:230px;
-    border-radius:12px;
-    border:2px dashed #cbd5e1;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    overflow:hidden;
-    margin-bottom:10px;
-    background:#f8fafc;
-}
-
-.preview img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-}
-
-button{
-    width:100%;
-    padding:14px;
-    border:none;
-    border-radius:12px;
-    background:#2563eb;
-    color:white;
-    font-weight:600;
-    font-size:15px;
-    cursor:pointer;
-}
-
-button:hover{
-    background:#1d4ed8;
-}
-
-.status{
-    text-align:center;
-    margin-top:12px;
-    font-weight:600;
-}
-
-.success{color:#16a34a;}
-.error{color:#dc2626;}
-.loading{color:#2563eb;}
-
-.gps{
-    font-size:12px;
-    background:#f1f5f9;
-    padding:10px;
-    border-radius:10px;
-    margin-bottom:12px;
-}
-
-</style>
-
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <div class="card">
 
-<h1>Fuel Monitoring</h1>
-<div class="subtitle">Capture and upload fuel station photos</div>
+    <div class="header">
+        <img src="ZAMECO LOGO.png" alt="ZAMECO I Logo" class="logo">
+        <h2>Zambales I Electric Cooperative, Inc.</h2>
+    </div>
 
-<label>Date</label> <input type="text" id="date" readonly>
+    <h1>Fuel Monitoring</h1>
 
-<label>Municipality</label> <select id="municipality">
+    <label>Date</label>
+    <input type="text" id="date" readonly>
 
-<option value="">Select Municipality</option>
-<option>STA CRUZ</option>
-<option>CANDELARIA</option>
-<option>MASINLOC</option>
-<option>PALAUIG</option>
-<option>IBA</option>
-<option>BOTOLAN</option>
-</select>
+    <label>Municipality</label>
+    <select id="municipality">
+        <option value="">Select Municipality</option>
+        <option>STA CRUZ</option>
+        <option>CANDELARIA</option>
+        <option>MASINLOC</option>
+        <option>PALAUIG</option>
+        <option>IBA</option>
+        <option>BOTOLAN</option>
+    </select>
 
-<div class="gps">
-Latitude: <span id="lat">...</span><br>
-Longitude: <span id="lng">...</span>
-</div>
+    <div class="gps">
+        Latitude: <span id="lat">...</span><br>
+        Longitude: <span id="lng">...</span>
+    </div>
 
-<div class="preview" id="preview">No image captured</div>
+    <div class="preview" id="preview">
+        No image selected
+    </div>
 
-<button onclick="openCamera()">📷 Capture Photo</button>
+    <button onclick="openCamera()">
+        📷 Capture Photo
+    </button>
 
-<input type="file" id="camera" accept="image/*" capture="environment" hidden>
+    <button onclick="openGallery()" class="gallery-btn">
+        📁 Upload Existing Photo
+    </button>
 
-<div id="status" class="status"></div>
+    <input
+        type="file"
+        id="camera"
+        accept="image/*"
+        capture="environment"
+        hidden
+    >
+
+    <input
+        type="file"
+        id="gallery"
+        accept="image/*"
+        hidden
+    >
+
+    <div id="status" class="status"></div>
 
 </div>
 
@@ -160,91 +75,141 @@ Longitude: <span id="lng">...</span>
 const SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbxMVwW15HoqBwTnI7Oin5QyeSMTyXKSOWbD2KTznImRLyBUN22cqOhhiowI0qrQ86ZqHw/exec";
 
-const today = new Date().toISOString().split("T")[0];
+const today = new Date().toLocaleDateString("en-CA");
 document.getElementById("date").value = today;
 
 let lat = "";
 let lng = "";
 
 navigator.geolocation.getCurrentPosition(
-pos => {
-    lat = pos.coords.latitude;
-    lng = pos.coords.longitude;
-    document.getElementById("lat").innerText = lat;
-    document.getElementById("lng").innerText = lng;
-},
-err => {
-    document.getElementById("lat").innerText = "N/A";
-    document.getElementById("lng").innerText = "N/A";
-}
+    pos => {
+
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
+
+        document.getElementById("lat").innerText = lat;
+        document.getElementById("lng").innerText = lng;
+
+    },
+    err => {
+
+        document.getElementById("lat").innerText = "N/A";
+        document.getElementById("lng").innerText = "N/A";
+
+    }
 );
 
-function openCamera(){
+function openCamera() {
     document.getElementById("camera").click();
 }
 
-document.getElementById("camera").addEventListener("change", function(e){
-
-const file = e.target.files[0];
-if(!file) return;
-
-const municipality = document.getElementById("municipality").value;
-if(!municipality){
-    alert("Select municipality first");
-    return;
+function openGallery() {
+    document.getElementById("gallery").click();
 }
 
-document.getElementById("preview").innerHTML =
-`<img src="${URL.createObjectURL(file)}">`;
+function processImage(e) {
 
-const reader = new FileReader();
+    const file = e.target.files[0];
 
-reader.onload = function(){
+    if (!file) return;
 
-    const base64 = reader.result.split(",")[1];
+    const municipality =
+        document.getElementById("municipality").value;
 
-    document.getElementById("status").innerHTML =
-    "<span class='loading'>Uploading...</span>";
+    if (!municipality) {
+        alert("Please select a municipality first.");
+        e.target.value = "";
+        return;
+    }
 
-    fetch(SCRIPT_URL, {
-        method: "POST",
-        body: new URLSearchParams({
-            municipality,
-            dateFolder: today,
-            fileName: file.name,
-            mimeType: file.type,
-            base64Data: base64,
-            latitude: lat,
-            longitude: lng
-        })
-    })
-    .then(async res => {
-        const text = await res.text();   // IMPORTANT FIX
-        console.log("RAW RESPONSE:", text);
-        return JSON.parse(text);
-    })
-    .then(data => {
+    const source =
+        e.target.id === "camera"
+        ? "Camera"
+        : "Gallery";
 
-        if (data.success) {
-            document.getElementById("status").innerHTML =
-            "<span class='success'>" + data.message + "</span>";
-        } else {
-            document.getElementById("status").innerHTML =
-            "<span class='error'>" + data.message + "</span>";
-        }
+    document.getElementById("preview").innerHTML =
+        `<img src="${URL.createObjectURL(file)}">`;
 
-    })
-    .catch(err => {
-        console.error(err);
+    const reader = new FileReader();
+
+    reader.onload = function () {
+
+        const base64 =
+            reader.result.split(",")[1];
+
         document.getElementById("status").innerHTML =
-        "<span class='error'>Backend not reachable</span>";
-    });
+            "<span class='loading'>Uploading...</span>";
 
-};
+        fetch(SCRIPT_URL, {
 
-reader.readAsDataURL(file);
+            method: "POST",
 
-});
+            body: new URLSearchParams({
+
+                municipality: municipality,
+                dateFolder: today,
+
+                fileName: file.name,
+                mimeType: file.type,
+                base64Data: base64,
+
+                latitude: lat,
+                longitude: lng,
+
+                source: source
+
+            })
+
+        })
+        .then(async res => {
+
+            const text = await res.text();
+
+            console.log("RAW RESPONSE:", text);
+
+            return JSON.parse(text);
+
+        })
+        .then(data => {
+
+            if (data.success) {
+
+                document.getElementById("status").innerHTML =
+                    `<span class="success">${data.message}</span>`;
+
+                document.getElementById("camera").value = "";
+                document.getElementById("gallery").value = "";
+
+            } else {
+
+                document.getElementById("status").innerHTML =
+                    `<span class="error">${data.message}</span>`;
+
+            }
+
+        })
+        .catch(error => {
+
+            console.error(error);
+
+            document.getElementById("status").innerHTML =
+                "<span class='error'>Backend not reachable</span>";
+
+        });
+
+    };
+
+    reader.readAsDataURL(file);
+
+}
+
+document
+.getElementById("camera")
+.addEventListener("change", processImage);
+
+document
+.getElementById("gallery")
+.addEventListener("change", processImage);
 
 </script>
 
