@@ -8,42 +8,62 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
+.preview{
+    margin:15px 0;
+    text-align:center;
+    border:1px solid #ddd;
+    padding:10px;
+    border-radius:8px;
+}
+
 .preview img{
     width:100%;
     max-width:300px;
-    border-radius:10px;
+    border-radius:8px;
 }
 
 button{
     width:100%;
     padding:12px;
     margin-top:10px;
+    border:none;
+    border-radius:6px;
     cursor:pointer;
+}
+
+#uploadBtn:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+
+.status{
+    margin-top:15px;
+    font-weight:bold;
 }
 
 .loading{
     color:orange;
-    font-weight:bold;
 }
 
 .success{
     color:green;
-    font-weight:bold;
 }
 
 .error{
     color:red;
-    font-weight:bold;
+}
+
+.gps{
+    margin-top:10px;
+    font-size:14px;
 }
 </style>
-
 </head>
 
 <body>
 
 <div class="card">
 
-    <!-- Header -->
     <div class="header">
         <img src="ZAMECO LOGO.png" alt="ZAMECO I Logo" class="logo">
         <h2>Zambales I Electric Cooperative, Inc.</h2>
@@ -51,11 +71,9 @@ button{
 
     <h1>Fuel Monitoring</h1>
 
-    <!-- Date -->
     <label>Date</label>
     <input type="text" id="date" readonly>
 
-    <!-- Municipality -->
     <label>Municipality</label>
     <select id="municipality">
         <option value="">Select Municipality</option>
@@ -67,27 +85,27 @@ button{
         <option>BOTOLAN</option>
     </select>
 
-    <!-- GPS -->
     <div class="gps">
-        <p>Latitude: <span id="lat">Loading...</span></p>
-        <p>Longitude: <span id="lng">Loading...</span></p>
+        Latitude: <span id="lat">Loading...</span><br>
+        Longitude: <span id="lng">Loading...</span>
     </div>
 
-    <!-- Photo Preview -->
-    <div class="preview" id="preview">
+    <div id="preview" class="preview">
         No image captured
     </div>
 
-    <!-- Buttons -->
-    <button onclick="openCamera()">
+    <button type="button" onclick="openCamera()">
         📷 Capture Photo
     </button>
 
-    <button id="uploadBtn" onclick="uploadPhoto()" disabled>
+    <button
+        type="button"
+        id="uploadBtn"
+        onclick="uploadPhoto()"
+        disabled>
         ⬆ Upload Photo
     </button>
 
-    <!-- Hidden Camera Input -->
     <input
         type="file"
         id="camera"
@@ -95,61 +113,65 @@ button{
         capture="environment"
         hidden>
 
-    <!-- Status -->
     <div id="status" class="status"></div>
 
 </div>
 
 <script>
 
-// =====================================
-// GOOGLE APPS SCRIPT URL
-// =====================================
+//================================================
+// APPS SCRIPT WEB APP URL
+//================================================
+
 const SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbxMVwW15HoqBwTnI7Oin5QyeSMTyXKSOWbD2KTznImRLyBUN22cqOhhiowI0qrQ86ZqHw/exec";
 
-// =====================================
-// DATE
-// =====================================
+//================================================
+// TODAY'S DATE
+//================================================
+
 const today = new Date().toISOString().split("T")[0];
 document.getElementById("date").value = today;
 
-// =====================================
-// GLOBAL VARIABLES
-// =====================================
-let lat = "";
-let lng = "";
+//================================================
+// VARIABLES
+//================================================
+
+let latitude = "";
+let longitude = "";
 
 let selectedFile = null;
 let selectedBase64 = null;
 
-// =====================================
-// GET GPS LOCATION
-// =====================================
+//================================================
+// GPS LOCATION
+//================================================
+
 navigator.geolocation.getCurrentPosition(
 
-    position => {
+    function(position){
 
-        lat = position.coords.latitude;
-        lng = position.coords.longitude;
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
 
-        document.getElementById("lat").innerText = lat;
-        document.getElementById("lng").innerText = lng;
+        document.getElementById("lat").textContent = latitude;
+        document.getElementById("lng").textContent = longitude;
     },
 
-    error => {
+    function(error){
 
-        document.getElementById("lat").innerText = "N/A";
-        document.getElementById("lng").innerText = "N/A";
+        console.error("GPS Error:", error);
 
-        console.error(error);
+        document.getElementById("lat").textContent = "N/A";
+        document.getElementById("lng").textContent = "N/A";
     }
 
 );
 
-// =====================================
+//================================================
 // OPEN CAMERA
-// =====================================
+//================================================
+
 function openCamera(){
 
     const municipality =
@@ -164,45 +186,55 @@ function openCamera(){
     document.getElementById("camera").click();
 }
 
-// =====================================
-// PHOTO CAPTURE
-// =====================================
+//================================================
+// CAPTURE IMAGE
+//================================================
+
 document.getElementById("camera")
 .addEventListener("change", function(event){
 
     const file = event.target.files[0];
 
-    if(!file) return;
+    if(!file){
+        return;
+    }
+
+    console.log("Selected File:", file.name);
+    console.log("File Size:", file.size);
 
     selectedFile = file;
 
-    // Preview Image
     document.getElementById("preview").innerHTML =
-    `<img src="${URL.createObjectURL(file)}">`;
+        `<img src="${URL.createObjectURL(file)}" alt="Preview">`;
 
-    // Convert to Base64
     const reader = new FileReader();
 
     reader.onload = function(){
 
         selectedBase64 =
-        reader.result.split(",")[1];
+            reader.result.split(",")[1];
+
+        console.log(
+            "Base64 Length:",
+            selectedBase64.length
+        );
 
         document.getElementById("status").innerHTML =
-        "Photo ready for upload.";
+            "Photo ready for upload.";
 
         document.getElementById("uploadBtn")
-        .disabled = false;
+            .disabled = false;
     };
 
     reader.readAsDataURL(file);
 
 });
 
-// =====================================
+//================================================
 // UPLOAD PHOTO
-// =====================================
-function uploadPhoto(){
+//================================================
+
+async function uploadPhoto(){
 
     if(!selectedFile){
 
@@ -213,49 +245,54 @@ function uploadPhoto(){
     const municipality =
     document.getElementById("municipality").value;
 
+    const uploadBtn =
+    document.getElementById("uploadBtn");
+
+    uploadBtn.disabled = true;
+
     document.getElementById("status").innerHTML =
-    "<span class='loading'>Uploading...</span>";
+        "<span class='loading'>Uploading...</span>";
 
-    fetch(SCRIPT_URL, {
+    try{
 
-        method: "POST",
+        const response = await fetch(
+            SCRIPT_URL,
+            {
+                method:"POST",
+                body:new URLSearchParams({
 
-        body: new URLSearchParams({
+                    municipality: municipality,
 
-            municipality: municipality,
-            dateFolder: today,
+                    dateFolder: today,
 
-            fileName: selectedFile.name,
-            mimeType: selectedFile.type,
+                    fileName: selectedFile.name,
 
-            base64Data: selectedBase64,
+                    mimeType: selectedFile.type,
 
-            latitude: lat,
-            longitude: lng
+                    base64Data: selectedBase64,
 
-        })
+                    latitude: latitude,
 
-    })
+                    longitude: longitude
+                })
+            }
+        );
 
-    .then(response => response.text())
+        const text =
+            await response.text();
 
-    .then(text => {
+        console.log(
+            "RAW SERVER RESPONSE:",
+            text
+        );
 
-        console.log("Server Response:", text);
-
-        return JSON.parse(text);
-
-    })
-
-    .then(data => {
+        const data =
+            JSON.parse(text);
 
         if(data.success){
 
             document.getElementById("status").innerHTML =
-            `<span class="success">${data.message}</span>`;
-
-            document.getElementById("uploadBtn")
-            .disabled = true;
+                `<span class="success">${data.message}</span>`;
 
             selectedFile = null;
             selectedBase64 = null;
@@ -263,20 +300,27 @@ function uploadPhoto(){
         }else{
 
             document.getElementById("status").innerHTML =
-            `<span class="error">${data.message}</span>`;
+                `<span class="error">${data.message}</span>`;
+
+            uploadBtn.disabled = false;
         }
 
-    })
+    }
+    catch(error){
 
-    .catch(error => {
-
-        console.error(error);
+        console.error(
+            "UPLOAD ERROR:",
+            error
+        );
 
         document.getElementById("status").innerHTML =
-        `<span class="error">Upload failed.</span>`;
+            `<span class="error">
+                Upload failed.<br>
+                ${error.message}
+            </span>`;
 
-    });
-
+        uploadBtn.disabled = false;
+    }
 }
 
 </script>
