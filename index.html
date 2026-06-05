@@ -1,14 +1,41 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Fuel Monitoring System</title>
 
 <link rel="stylesheet" href="style.css">
+
+<style>
+.preview img{
+    width:100%;
+    max-width:300px;
+    border-radius:10px;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    cursor:pointer;
+}
+
+.loading{
+    color:orange;
+    font-weight:bold;
+}
+
+.success{
+    color:green;
+    font-weight:bold;
+}
+
+.error{
+    color:red;
+    font-weight:bold;
+}
+</style>
 
 </head>
 
@@ -16,130 +43,241 @@
 
 <div class="card">
 
-<div class="header">
-    <img src="ZAMECO LOGO.png" alt="ZAMECO I Logo" class="logo">
-    <h2>Zambales I Electric Cooperative, Inc.</h2>
-</div>
-<h1>Fuel Monitoring</h1>
+    <!-- Header -->
+    <div class="header">
+        <img src="ZAMECO LOGO.png" alt="ZAMECO I Logo" class="logo">
+        <h2>Zambales I Electric Cooperative, Inc.</h2>
+    </div>
 
-<label>Date</label> <input type="text" id="date" readonly>
+    <h1>Fuel Monitoring</h1>
 
-<label>Municipality</label> <select id="municipality">
+    <!-- Date -->
+    <label>Date</label>
+    <input type="text" id="date" readonly>
 
-<option value="">Select Municipality</option>
-<option>STA CRUZ</option>
-<option>CANDELARIA</option>
-<option>MASINLOC</option>
-<option>PALAUIG</option>
-<option>IBA</option>
-<option>BOTOLAN</option>
-</select>
+    <!-- Municipality -->
+    <label>Municipality</label>
+    <select id="municipality">
+        <option value="">Select Municipality</option>
+        <option>STA CRUZ</option>
+        <option>CANDELARIA</option>
+        <option>MASINLOC</option>
+        <option>PALAUIG</option>
+        <option>IBA</option>
+        <option>BOTOLAN</option>
+    </select>
 
-<div class="gps">
-Latitude: <span id="lat">...</span><br>
-Longitude: <span id="lng">...</span>
-</div>
+    <!-- GPS -->
+    <div class="gps">
+        <p>Latitude: <span id="lat">Loading...</span></p>
+        <p>Longitude: <span id="lng">Loading...</span></p>
+    </div>
 
-<div class="preview" id="preview">No image captured</div>
+    <!-- Photo Preview -->
+    <div class="preview" id="preview">
+        No image captured
+    </div>
 
-<button onclick="openCamera()">📷 Capture Photo</button>
+    <!-- Buttons -->
+    <button onclick="openCamera()">
+        📷 Capture Photo
+    </button>
 
-<input type="file" id="camera" accept="image/*" capture="environment" hidden>
+    <button id="uploadBtn" onclick="uploadPhoto()" disabled>
+        ⬆ Upload Photo
+    </button>
 
-<div id="status" class="status"></div>
+    <!-- Hidden Camera Input -->
+    <input
+        type="file"
+        id="camera"
+        accept="image/*"
+        capture="environment"
+        hidden>
+
+    <!-- Status -->
+    <div id="status" class="status"></div>
 
 </div>
 
 <script>
 
+// =====================================
+// GOOGLE APPS SCRIPT URL
+// =====================================
 const SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbz0NBvaHswAsC-CKxnX7ef9i8Bnhpqazb0nAt0Rkm0oxu06fptm2yhi2eb6XictDu6C3w/exec";
+"https://script.google.com/macros/s/AKfycbxMVwW15HoqBwTnI7Oin5QyeSMTyXKSOWbD2KTznImRLyBUN22cqOhhiowI0qrQ86ZqHw/exec";
 
+// =====================================
+// DATE
+// =====================================
 const today = new Date().toISOString().split("T")[0];
 document.getElementById("date").value = today;
 
+// =====================================
+// GLOBAL VARIABLES
+// =====================================
 let lat = "";
 let lng = "";
 
+let selectedFile = null;
+let selectedBase64 = null;
+
+// =====================================
+// GET GPS LOCATION
+// =====================================
 navigator.geolocation.getCurrentPosition(
-pos => {
-    lat = pos.coords.latitude;
-    lng = pos.coords.longitude;
-    document.getElementById("lat").innerText = lat;
-    document.getElementById("lng").innerText = lng;
-},
-err => {
-    document.getElementById("lat").innerText = "N/A";
-    document.getElementById("lng").innerText = "N/A";
-}
+
+    position => {
+
+        lat = position.coords.latitude;
+        lng = position.coords.longitude;
+
+        document.getElementById("lat").innerText = lat;
+        document.getElementById("lng").innerText = lng;
+    },
+
+    error => {
+
+        document.getElementById("lat").innerText = "N/A";
+        document.getElementById("lng").innerText = "N/A";
+
+        console.error(error);
+    }
+
 );
 
+// =====================================
+// OPEN CAMERA
+// =====================================
 function openCamera(){
+
+    const municipality =
+    document.getElementById("municipality").value;
+
+    if(!municipality){
+
+        alert("Please select municipality first.");
+        return;
+    }
+
     document.getElementById("camera").click();
 }
 
-document.getElementById("camera").addEventListener("change", function(e){
+// =====================================
+// PHOTO CAPTURE
+// =====================================
+document.getElementById("camera")
+.addEventListener("change", function(event){
 
-const file = e.target.files[0];
-if(!file) return;
+    const file = event.target.files[0];
 
-const municipality = document.getElementById("municipality").value;
-if(!municipality){
-    alert("Select municipality first");
-    return;
-}
+    if(!file) return;
 
-document.getElementById("preview").innerHTML =
-`<img src="${URL.createObjectURL(file)}">`;
+    selectedFile = file;
 
-const reader = new FileReader();
+    // Preview Image
+    document.getElementById("preview").innerHTML =
+    `<img src="${URL.createObjectURL(file)}">`;
 
-reader.onload = function(){
+    // Convert to Base64
+    const reader = new FileReader();
 
-    const base64 = reader.result.split(",")[1];
+    reader.onload = function(){
+
+        selectedBase64 =
+        reader.result.split(",")[1];
+
+        document.getElementById("status").innerHTML =
+        "Photo ready for upload.";
+
+        document.getElementById("uploadBtn")
+        .disabled = false;
+    };
+
+    reader.readAsDataURL(file);
+
+});
+
+// =====================================
+// UPLOAD PHOTO
+// =====================================
+function uploadPhoto(){
+
+    if(!selectedFile){
+
+        alert("Please capture a photo first.");
+        return;
+    }
+
+    const municipality =
+    document.getElementById("municipality").value;
 
     document.getElementById("status").innerHTML =
     "<span class='loading'>Uploading...</span>";
 
     fetch(SCRIPT_URL, {
+
         method: "POST",
+
         body: new URLSearchParams({
-            municipality,
+
+            municipality: municipality,
             dateFolder: today,
-            fileName: file.name,
-            mimeType: file.type,
-            base64Data: base64,
+
+            fileName: selectedFile.name,
+            mimeType: selectedFile.type,
+
+            base64Data: selectedBase64,
+
             latitude: lat,
             longitude: lng
+
         })
+
     })
-    .then(async res => {
-        const text = await res.text();   // IMPORTANT FIX
-        console.log("RAW RESPONSE:", text);
+
+    .then(response => response.text())
+
+    .then(text => {
+
+        console.log("Server Response:", text);
+
         return JSON.parse(text);
+
     })
+
     .then(data => {
 
-        if (data.success) {
+        if(data.success){
+
             document.getElementById("status").innerHTML =
-            "<span class='success'>" + data.message + "</span>";
-        } else {
+            `<span class="success">${data.message}</span>`;
+
+            document.getElementById("uploadBtn")
+            .disabled = true;
+
+            selectedFile = null;
+            selectedBase64 = null;
+
+        }else{
+
             document.getElementById("status").innerHTML =
-            "<span class='error'>" + data.message + "</span>";
+            `<span class="error">${data.message}</span>`;
         }
 
     })
-    .catch(err => {
-        console.error(err);
+
+    .catch(error => {
+
+        console.error(error);
+
         document.getElementById("status").innerHTML =
-        "<span class='error'>Backend not reachable</span>";
+        `<span class="error">Upload failed.</span>`;
+
     });
 
-};
-
-reader.readAsDataURL(file);
-
-});
+}
 
 </script>
 
