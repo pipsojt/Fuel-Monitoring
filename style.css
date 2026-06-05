@@ -106,15 +106,6 @@ button:hover{
     background:#1d4ed8;
 }
 
-.gallery-btn{
-    margin-top:10px;
-    background:#16a34a;
-}
-
-.gallery-btn:hover{
-    background:#15803d;
-}
-
 .status{
     text-align:center;
     margin-top:12px;
