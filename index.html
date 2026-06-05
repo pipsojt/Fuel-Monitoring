@@ -1,215 +1,145 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>ZAMECO I Fuel Monitoring System</title>
+<title>Fuel Monitoring System</title>
 
 <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
 <div class="card">
 
-    <div class="header">
-        <img src="ZAMECO LOGO.png" alt="ZAMECO I Logo" class="logo">
-        <h2>Zambales I Electric Cooperative, Inc.</h2>
-    </div>
+<div class="header">
+    <img src="ZAMECO LOGO.png" alt="ZAMECO I Logo" class="logo">
+    <h2>Zambales I Electric Cooperative, Inc.</h2>
+</div>
+<h1>Fuel Monitoring</h1>
 
-    <h1>Fuel Monitoring</h1>
+<label>Date</label> <input type="text" id="date" readonly>
 
-    <label>Date</label>
-    <input type="text" id="date" readonly>
+<label>Municipality</label> <select id="municipality">
 
-    <label>Municipality</label>
-    <select id="municipality">
-        <option value="">Select Municipality</option>
-        <option>STA CRUZ</option>
-        <option>CANDELARIA</option>
-        <option>MASINLOC</option>
-        <option>PALAUIG</option>
-        <option>IBA</option>
-        <option>BOTOLAN</option>
-    </select>
+<option value="">Select Municipality</option>
+<option>STA CRUZ</option>
+<option>CANDELARIA</option>
+<option>MASINLOC</option>
+<option>PALAUIG</option>
+<option>IBA</option>
+<option>BOTOLAN</option>
+</select>
 
-    <div class="gps">
-        Latitude: <span id="lat">...</span><br>
-        Longitude: <span id="lng">...</span>
-    </div>
+<div class="gps">
+Latitude: <span id="lat">...</span><br>
+Longitude: <span id="lng">...</span>
+</div>
 
-    <div class="preview" id="preview">
-        No image selected
-    </div>
+<div class="preview" id="preview">No image captured</div>
 
-    <button onclick="openCamera()">
-        📷 Capture Photo
-    </button>
+<button onclick="openCamera()">📷 Capture Photo</button>
 
-    <button onclick="openGallery()" class="gallery-btn">
-        📁 Upload Existing Photo
-    </button>
+<input type="file" id="camera" accept="image/*" capture="environment" hidden>
 
-    <input
-        type="file"
-        id="camera"
-        accept="image/*"
-        capture="environment"
-        hidden
-    >
-
-    <input
-        type="file"
-        id="gallery"
-        accept="image/*"
-        hidden
-    >
-
-    <div id="status" class="status"></div>
+<div id="status" class="status"></div>
 
 </div>
 
 <script>
 
 const SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbySz1s2zfiKCXaXDjeA-0x6HfniDIarvADqBldEqP-djpFt3XI0j04Ia5kGBhzdysfQdw/exec";
+"https://script.google.com/macros/s/AKfycbz0NBvaHswAsC-CKxnX7ef9i8Bnhpqazb0nAt0Rkm0oxu06fptm2yhi2eb6XictDu6C3w/exec";
 
-const today = new Date().toLocaleDateString("en-CA");
+const today = new Date().toISOString().split("T")[0];
 document.getElementById("date").value = today;
 
 let lat = "";
 let lng = "";
 
 navigator.geolocation.getCurrentPosition(
-    pos => {
-
-        lat = pos.coords.latitude;
-        lng = pos.coords.longitude;
-
-        document.getElementById("lat").innerText = lat;
-        document.getElementById("lng").innerText = lng;
-
-    },
-    err => {
-
-        document.getElementById("lat").innerText = "N/A";
-        document.getElementById("lng").innerText = "N/A";
-
-    }
+pos => {
+    lat = pos.coords.latitude;
+    lng = pos.coords.longitude;
+    document.getElementById("lat").innerText = lat;
+    document.getElementById("lng").innerText = lng;
+},
+err => {
+    document.getElementById("lat").innerText = "N/A";
+    document.getElementById("lng").innerText = "N/A";
+}
 );
 
-function openCamera() {
+function openCamera(){
     document.getElementById("camera").click();
 }
 
-function openGallery() {
-    document.getElementById("gallery").click();
+document.getElementById("camera").addEventListener("change", function(e){
+
+const file = e.target.files[0];
+if(!file) return;
+
+const municipality = document.getElementById("municipality").value;
+if(!municipality){
+    alert("Select municipality first");
+    return;
 }
 
-function processImage(e) {
+document.getElementById("preview").innerHTML =
+`<img src="${URL.createObjectURL(file)}">`;
 
-    const file = e.target.files[0];
+const reader = new FileReader();
 
-    if (!file) return;
+reader.onload = function(){
 
-    const municipality =
-        document.getElementById("municipality").value;
+    const base64 = reader.result.split(",")[1];
 
-    if (!municipality) {
-        alert("Please select a municipality first.");
-        e.target.value = "";
-        return;
-    }
+    document.getElementById("status").innerHTML =
+    "<span class='loading'>Uploading...</span>";
 
-    const source =
-        e.target.id === "camera"
-        ? "Camera"
-        : "Gallery";
-
-    document.getElementById("preview").innerHTML =
-        `<img src="${URL.createObjectURL(file)}">`;
-
-    const reader = new FileReader();
-
-    reader.onload = function () {
-
-        const base64 =
-            reader.result.split(",")[1];
-
-        document.getElementById("status").innerHTML =
-            "<span class='loading'>Uploading...</span>";
-
-        fetch(SCRIPT_URL, {
-
-            method: "POST",
-
-            body: new URLSearchParams({
-
-                municipality: municipality,
-                dateFolder: today,
-
-                fileName: file.name,
-                mimeType: file.type,
-                base64Data: base64,
-
-                latitude: lat,
-                longitude: lng,
-
-                source: source
-
-            })
-
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        body: new URLSearchParams({
+            municipality,
+            dateFolder: today,
+            fileName: file.name,
+            mimeType: file.type,
+            base64Data: base64,
+            latitude: lat,
+            longitude: lng
         })
-        .then(async res => {
+    })
+    .then(async res => {
+        const text = await res.text();   // IMPORTANT FIX
+        console.log("RAW RESPONSE:", text);
+        return JSON.parse(text);
+    })
+    .then(data => {
 
-            const text = await res.text();
-
-            console.log("RAW RESPONSE:", text);
-
-            return JSON.parse(text);
-
-        })
-        .then(data => {
-
-            if (data.success) {
-
-                document.getElementById("status").innerHTML =
-                    `<span class="success">${data.message}</span>`;
-
-                document.getElementById("camera").value = "";
-                document.getElementById("gallery").value = "";
-
-            } else {
-
-                document.getElementById("status").innerHTML =
-                    `<span class="error">${data.message}</span>`;
-
-            }
-
-        })
-        .catch(error => {
-
-            console.error(error);
-
+        if (data.success) {
             document.getElementById("status").innerHTML =
-                "<span class='error'>Backend not reachable</span>";
+            "<span class='success'>" + data.message + "</span>";
+        } else {
+            document.getElementById("status").innerHTML =
+            "<span class='error'>" + data.message + "</span>";
+        }
 
-        });
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById("status").innerHTML =
+        "<span class='error'>Backend not reachable</span>";
+    });
 
-    };
+};
 
-    reader.readAsDataURL(file);
+reader.readAsDataURL(file);
 
-}
-
-document
-.getElementById("camera")
-.addEventListener("change", processImage);
-
-document
-.getElementById("gallery")
-.addEventListener("change", processImage);
+});
 
 </script>
 
