@@ -1,620 +1,251 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Photo Dashboard</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Fuel Monitoring System</title>
 
 <style>
-:root{
-    --primary:#6366f1;
-    --secondary:#8b5cf6;
-    --success:#10b981;
-    --dark:#0f172a;
-    --card:rgba(255,255,255,.08);
-    --border:rgba(255,255,255,.15);
-}
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Inter',sans-serif;
-}
 
 body{
-    min-height:100vh;
-    background:
-    radial-gradient(circle at top left,#6366f1 0%,transparent 30%),
-    radial-gradient(circle at bottom right,#8b5cf6 0%,transparent 30%),
-    #09090f;
-    color:white;
-    padding:40px;
-}
-
-.dashboard{
-    max-width:1300px;
-    margin:auto;
-}
-
-.header{
+    margin:0;
+    font-family:Segoe UI, sans-serif;
+    background:#0f172a;
     display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:30px;
-}
-
-.logo{
-    font-size:28px;
-    font-weight:700;
-}
-
-.logo span{
-    color:#818cf8;
-}
-
-.stats{
-    display:flex;
-    gap:15px;
-}
-
-.stat{
-    backdrop-filter:blur(20px);
-    background:var(--card);
-    border:1px solid var(--border);
-    padding:15px 20px;
-    border-radius:18px;
-}
-
-.stat-number{
-    font-size:24px;
-    font-weight:700;
-}
-
-.stat-label{
-    font-size:13px;
-    opacity:.7;
-}
-
-.upload-section{
-    backdrop-filter:blur(30px);
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:30px;
-    padding:40px;
-}
-
-.upload-box{
-    border:2px dashed rgba(255,255,255,.25);
-    border-radius:25px;
-    min-height:260px;
-    display:flex;
-    flex-direction:column;
     justify-content:center;
     align-items:center;
-    transition:.3s;
-    cursor:pointer;
-}
-
-.upload-box:hover{
-    border-color:#818cf8;
-    background:rgba(255,255,255,.03);
-}
-
-.upload-icon{
-    font-size:70px;
-    margin-bottom:15px;
-}
-
-.upload-title{
-    font-size:22px;
-    font-weight:600;
-    margin-bottom:10px;
-}
-
-.upload-subtitle{
-    opacity:.7;
-}
-
-input[type=file]{
-    display:none;
-}
-
-.actions{
-    margin-top:25px;
-    display:flex;
-    gap:15px;
-    flex-wrap:wrap;
-}
-
-.select-field,
-.date-field{
-    min-width:220px;
-    height:52px;
-    padding:0 16px;
-    border-radius:14px;
-    border:1px solid rgba(255,255,255,.15);
-    background:rgba(255,255,255,.08);
-    color:white;
-    font-size:15px;
-    font-weight:500;
-    backdrop-filter:blur(20px);
-    outline:none;
-}
-
-.select-field option{
-    background:#111827;
-    color:white;
-}
-
-.date-field::-webkit-calendar-picker-indicator{
-    cursor:pointer;
-    filter:invert(1);
-}
-
-.btn{
-    height:52px;
-    border:none;
-    border-radius:14px;
-    padding:0 24px;
-    cursor:pointer;
-    font-weight:600;
-    transition:.25s;
-}
-
-.btn-primary{
-    background:linear-gradient(
-        135deg,
-        var(--primary),
-        var(--secondary)
-    );
-    color:white;
-    box-shadow:
-    0 10px 25px rgba(99,102,241,.35);
-}
-
-.btn-primary:hover{
-    transform:translateY(-2px);
-}
-
-.progress{
-    margin-top:25px;
-    height:12px;
-    background:rgba(255,255,255,.08);
-    border-radius:999px;
-    overflow:hidden;
-    display:none;
-}
-
-.progress-bar{
-    width:0%;
-    height:100%;
-    background:linear-gradient(
-        90deg,
-        #6366f1,
-        #8b5cf6
-    );
-    transition:.3s;
-}
-
-.gallery{
-    margin-top:35px;
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-    gap:20px;
+    min-height:100vh;
+    padding:20px;
 }
 
 .card{
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:22px;
-    overflow:hidden;
-    backdrop-filter:blur(20px);
-    animation:fadeIn .4s ease;
-}
-
-.card img{
     width:100%;
-    height:220px;
-    object-fit:cover;
+    max-width:520px;
+    background:white;
+    border-radius:18px;
+    padding:22px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
 }
 
-.card-footer{
-    padding:14px;
+h1{
+    text-align:center;
+    margin-bottom:5px;
+    color:#0f172a;
 }
 
-.file-name{
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+.subtitle{
+    text-align:center;
+    font-size:13px;
+    color:#64748b;
+    margin-bottom:20px;
+}
+
+label{
+    font-weight:600;
+    font-size:14px;
+    color:#334155;
+}
+
+input,select{
+    width:95%;
+    padding:12px;
+    margin-top:6px;
+    margin-bottom:14px;
+    border-radius:10px;
+    border:1px solid #cbd5e1;
     font-size:14px;
 }
 
+input[readonly]{
+    background:#f1f5f9;
+}
+
+.preview{
+    width:100%;
+    height:230px;
+    border-radius:12px;
+    border:2px dashed #cbd5e1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+    margin-bottom:10px;
+    background:#f8fafc;
+}
+
+.preview img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:#2563eb;
+    color:white;
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#1d4ed8;
+}
+
 .status{
-    margin-top:15px;
-    color:#94a3b8;
+    text-align:center;
+    margin-top:12px;
+    font-weight:600;
 }
 
-@keyframes fadeIn{
-    from{
-        opacity:0;
-        transform:translateY(15px);
-    }
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
+.success{color:#16a34a;}
+.error{color:#dc2626;}
+.loading{color:#2563eb;}
+
+.gps{
+    font-size:12px;
+    background:#f1f5f9;
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:12px;
 }
 
-@media(max-width:768px){
-
-    body{
-        padding:16px;
-    }
-
-    .header{
-        flex-direction:column;
-        align-items:flex-start;
-        gap:20px;
-    }
-
-    .stats{
-        width:100%;
-        display:grid;
-        grid-template-columns:1fr 1fr;
-    }
-
-    .upload-section{
-        padding:20px;
-        border-radius:24px;
-    }
-
-    .upload-box{
-        min-height:220px;
-        padding:20px;
-    }
-
-    .upload-title{
-        font-size:18px;
-        text-align:center;
-    }
-
-    .upload-subtitle{
-        text-align:center;
-        font-size:14px;
-    }
-
-    .actions{
-        flex-direction:column;
-    }
-
-    .select-field,
-    .date-field,
-    .btn-primary{
-        width:100%;
-    }
-
-    .gallery{
-        grid-template-columns:
-        repeat(2,minmax(0,1fr));
-        gap:12px;
-    }
-
-    .card img{
-        height:150px;
-    }
-}
-
-@media(max-width:480px){
-
-    .gallery{
-        grid-template-columns:1fr;
-    }
-
-    .stats{
-        grid-template-columns:1fr;
-    }
-}
 </style>
+
 </head>
 
 <body>
 
-<div class="dashboard">
+<div class="card">
 
-    <div class="header">
-        <div class="logo">
-            Fuel <span>Monitoring</span>
-        </div>
+<h1>Fuel Monitoring</h1>
+<div class="subtitle">Capture and upload fuel station photos</div>
 
-        <div class="stats">
-            <div class="stat">
-                <div class="stat-number" id="totalFiles">0</div>
-                <div class="stat-label">Selected Photos</div>
-            </div>
+<label>Date</label> <input type="text" id="date" readonly>
 
-            <div class="stat">
-                <div class="stat-number" id="uploadedFiles">0</div>
-                <div class="stat-label">Uploaded</div>
-            </div>
-        </div>
-    </div>
+<label>Municipality</label> <select id="municipality">
 
-    <div class="upload-section">
+<option value="">Select Municipality</option>
+<option>STA CRUZ</option>
+<option>CANDELARIA</option>
+<option>MASINLOC</option>
+<option>PALAUIG</option>
+<option>IBA</option>
+<option>BOTOLAN</option>
+</select>
 
-        <label class="upload-box" id="dropZone">
+<div class="gps">
+Latitude: <span id="lat">...</span><br>
+Longitude: <span id="lng">...</span>
+</div>
 
-            <div class="upload-icon">📸</div>
+<div class="preview" id="preview">No image captured</div>
 
-            <div class="upload-title">
-                Upload Photo Here
-            </div>
+<button onclick="openCamera()">📷 Capture Photo</button>
 
-            <div class="upload-subtitle">
-                Drag & Drop images here or click to browse
-            </div>
+<input type="file" id="camera" accept="image/*" capture="environment" hidden>
 
-            <input
-                type="file"
-                id="fileInput"
-                multiple
-                accept="image/*">
-        </label>
-
-        <div class="actions">
-            <select id="municipality" class="select-field">
-                <option value="">Select Municipality</option>
-                <option value="STA CRUZ">STA CRUZ</option>
-                <option value="CANDELARIA">CANDELARIA</option>
-                <option value="MASINLOC">MASINLOC</option>
-                <option value="PALAUIG">PALAUIG</option>
-                <option value="IBA">IBA</option>
-                <option value="BOTOLAN">BOTOLAN</option>
-            </select>
-
-            <input
-                type="date"
-                id="uploadDate"
-                class="date-field">
-
-            <button class="btn btn-primary" id="uploadBtn">
-                Upload to Google Drive
-            </button>
-        </div>
-
-        <div class="progress" id="progress">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
-
-        <div class="status" id="status"></div>
-
-        <div class="gallery" id="gallery"></div>
-
-    </div>
+<div id="status" class="status"></div>
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.js"></script>
-
 <script>
 
-const fileInput = document.getElementById("fileInput");
-const gallery = document.getElementById("gallery");
-const totalFiles = document.getElementById("totalFiles");
-const uploadedFiles = document.getElementById("uploadedFiles");
-const uploadBtn = document.getElementById("uploadBtn");
-const progress = document.getElementById("progress");
-const progressBar = document.getElementById("progressBar");
-const status = document.getElementById("status");
-const dropZone = document.getElementById("dropZone");
+const SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbxpgZexokJpywn9Qzl0PqyULLorZYOq-EMe7O3v3I6Kf35qhgJINCbb5r9CCrYg1B4hhw/exec";
 
-let files = [];
+const today = new Date().toISOString().split("T")[0];
+document.getElementById("date").value = today;
 
-function renderFiles(){
+let lat = "";
+let lng = "";
 
-    gallery.innerHTML = "";
+navigator.geolocation.getCurrentPosition(
+pos => {
+    lat = pos.coords.latitude;
+    lng = pos.coords.longitude;
+    document.getElementById("lat").innerText = lat;
+    document.getElementById("lng").innerText = lng;
+},
+err => {
+    document.getElementById("lat").innerText = "N/A";
+    document.getElementById("lng").innerText = "N/A";
+}
+);
 
-    totalFiles.textContent = files.length;
-
-    files.forEach(file=>{
-
-        const reader = new FileReader();
-
-        reader.onload = function(e){
-
-            gallery.innerHTML += `
-                <div class="card">
-                    <img src="${e.target.result}">
-                    <div class="card-footer">
-                        <div class="file-name">
-                            ${file.name}
-                        </div>
-                    </div>
-                </div>
-            `;
-        };
-
-        reader.readAsDataURL(file);
-    });
+function openCamera(){
+    document.getElementById("camera").click();
 }
 
-fileInput.addEventListener("change",(e)=>{
-    files = [...e.target.files];
-    renderFiles();
+document.getElementById("camera").addEventListener("change", function(e){
+
+const file = e.target.files[0];
+if(!file) return;
+
+const municipality = document.getElementById("municipality").value;
+if(!municipality){
+    alert("Select municipality first");
+    return;
+}
+
+document.getElementById("preview").innerHTML =
+<img src="${URL.createObjectURL(file)}">;
+
+const reader = new FileReader();
+
+reader.onload = function(){
+
+    const base64 = reader.result.split(",")[1];
+
+    document.getElementById("status").innerHTML =
+    "<span class='loading'>Uploading...</span>";
+
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        body: new URLSearchParams({
+            municipality,
+            dateFolder: today,
+            fileName: file.name,
+            mimeType: file.type,
+            base64Data: base64,
+            latitude: lat,
+            longitude: lng
+        })
+    })
+    .then(async res => {
+        const text = await res.text();   // IMPORTANT FIX
+        console.log("RAW RESPONSE:", text);
+        return JSON.parse(text);
+    })
+    .then(data => {
+
+        if (data.success) {
+            document.getElementById("status").innerHTML =
+            "<span class='success'>" + data.message + "</span>";
+        } else {
+            document.getElementById("status").innerHTML =
+            "<span class='error'>" + data.message + "</span>";
+        }
+
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById("status").innerHTML =
+        "<span class='error'>Backend not reachable</span>";
+    });
+
+};
+
+reader.readAsDataURL(file);
+
 });
 
-dropZone.addEventListener("dragover",(e)=>{
-    e.preventDefault();
-});
-
-dropZone.addEventListener("drop",(e)=>{
-    e.preventDefault();
-
-    files = [...e.dataTransfer.files]
-        .filter(f=>f.type.startsWith("image/"));
-
-    renderFiles();
-});
-
-uploadBtn.addEventListener("click", async () => {
-    
-    const municipality =
-        document.getElementById("municipality").value;
-
-    const uploadDate =
-        document.getElementById("uploadDate").value;
-
-    if(!municipality){
-        alert("Select municipality");
-        return;
-    }
-
-    if(!uploadDate){
-        alert("Select date");
-        return;
-    }
-
-    if(files.length === 0){
-        alert("Select images first");
-        return;
-    }
-
-    progress.style.display = "block";
-    status.innerHTML = "Uploading...";
-
-    let uploaded = 0;
-
-    for(const file of files){
-
-        const reader = new FileReader();
-
-        reader.onload = async function(){
-
-            const base64 = reader.result.split(",")[1];
-
-            try{
-
-                // READ EXIF DATA
-                const exifData = await exifr.parse(file);
-
-                const capturedAt =
-                    exifData?.DateTimeOriginal ??
-                    exifData?.CreateDate ??
-                    null;
-
-                let latitude =
-                    exifData?.latitude ??
-                    null;
-
-                let longitude =
-                    exifData?.longitude ??
-                    null;
-
-                // If image has no GPS,
-                // use uploader's current location
-
-                if(latitude === null || longitude === null){
-
-                    try{
-
-                        const position =
-                            await new Promise(
-                                (resolve,reject)=>
-                                    navigator.geolocation.getCurrentPosition(
-                                        resolve,
-                                        reject,
-                                        {
-                                            enableHighAccuracy:true,
-                                            timeout:10000
-                                        }
-                                    )
-                            );
-
-                        latitude =
-                            position.coords.latitude;
-
-                        longitude =
-                            position.coords.longitude;
-
-                        console.log(
-                            "Using device GPS",
-                            latitude,
-                            longitude
-                        );
-
-                    }catch(error){
-
-                        console.log(
-                            "Location permission denied"
-                        );
-                    }
-                }
-
-                console.log({
-                    file:file.name,
-                    capturedAt,
-                    latitude,
-                    longitude
-                });
-
-                const response = await fetch(
-                "https://script.google.com/macros/s/AKfycbxpgZexokJpywn9Qzl0PqyULLorZYOq-EMe7O3v3I6Kf35qhgJINCbb5r9CCrYg1B4hhw/exec",
-                {
-                    method:"POST",
-                    body: JSON.stringify({
-                        municipality,
-                        uploadDate,
-                        fileName:file.name,
-                        mimeType:file.type,
-                        file:base64,
-
-                        // EXIF DATA
-                        capturedAt,
-                        latitude,
-                        longitude
-                    })
-                }
-                );
-
-                const result =
-                    await response.text();
-
-                console.log(result);
-
-                uploaded++;
-
-                uploadedFiles.textContent =
-                    uploaded;
-
-                const percent =
-                Math.round(
-                    (uploaded/files.length)*100
-                );
-
-                progressBar.style.width =
-                    percent + "%";
-
-                if(uploaded === files.length){
-
-                    status.innerHTML =
-                    "✔ Upload complete!";
-                }
-
-            }catch(err){
-
-                console.error(err);
-
-                status.innerHTML =
-                "❌ Upload failed!";
-            }
-        };
-
-        reader.readAsDataURL(file);
-    }
-});
 </script>
 
 </body>
