@@ -46,6 +46,24 @@
         <input type="file" id="camera" accept="image/*" capture="environment" hidden>
         <div id="status" class="status"></div>
 
+        <hr>
+
+        <h3>Upload History</h3>
+
+        <button onclick="loadLogs()">🔄 Refresh Logs</button>
+
+        <table id="logsTable" border="1" style="width:100%;margin-top:10px;">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Municipality</th>
+                    <th>Station</th>
+                    <th>Address</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
     </div>
 
 <script src="https://cdn.jsdelivr.net/npm/piexifjs"></script>
@@ -261,7 +279,7 @@
 
     // CONNECTION FOR GDRIVE BACKEND
     const SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbwAIu8emOgVWGK83G5Hx29-w_xrPvPiaVy0H--5Ncbh8FdrogsY7xMeOnidYzkheVU8/exec";
+    "https://script.google.com/macros/s/AKfycbyTgpV86gIywiFoC-2h-Ahfu7Q4e9sVDMCIdXcYAmZS-Rk0eCFox3MdGcmuijPYosWz3w/exec";
 
     // Set today's date in the date input
     const today = new Date().toISOString().split("T")[0];
@@ -531,6 +549,38 @@
 
         });
     }
+
+    function loadLogs() {
+
+        fetch(SCRIPT_URL + "?action=logs")
+            .then(response => response.json())
+            .then(data => {
+
+                const tbody =
+                    document.querySelector("#logsTable tbody");
+
+                tbody.innerHTML = "";
+
+                data.reverse().forEach(row => {
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${row.date}</td>
+                            <td>${row.municipality}</td>
+                            <td>${row.station}</td>
+                            <td>${row.address}</td>
+                        </tr>
+                    `;
+                });
+
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+    // Load automatically when page opens
+    loadLogs();
 </script>
 </body>
 </html>
