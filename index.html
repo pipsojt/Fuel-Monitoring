@@ -19,6 +19,9 @@
         <h1>Fuel Monitoring</h1>
 
         <!-- Date and Municipality selection -->
+        <h5> "For GPS and camera features, please open this page in External Browser." </h5>
+        <h5>Please allow the location access!</h5><hr>
+
         <label>Date</label> <input type="text" id="date" readonly>
         <label>Municipality</label> 
         <select id="municipality">
@@ -31,111 +34,512 @@
             <option>BOTOLAN</option>
         </select>
 
-        <div class="gps">
-            Latitude: <span id="lat">...</span><br>
-            Longitude: <span id="lng">...</span>
-        </div>
+        <label>Specific Station</label>
+        <select id="specificLocation">  </select>
+        
+        <label>Address</label>
+        <input type="text" id="stationAddress" readonly>
 
-        <div class="preview" id="preview">No image captured</div>
+        <div id="gpsStatus" class="gps-status"> 📍 Acquiring GPS location... </div>
+        <div class="preview" id="preview"> No image captured </div>
         <button onclick="openCamera()">📷 Capture Photo</button>
         <input type="file" id="camera" accept="image/*" capture="environment" hidden>
         <div id="status" class="status"></div>
 
     </div>
 
+<script src="https://cdn.jsdelivr.net/npm/piexifjs"></script>
 <script>
-    // IMPORTANT: REPLACE THIS WITH YOUR OWN DEPLOYED SCRIPT URL FOR GDRIVE BACKEND
+    // List of stations for each municipality
+    const locations = {
+
+        "STA CRUZ": [
+            {
+                station:"Jetti (Poblacion)",
+                address:"Poblacion North, Sta. Cruz, Zambales"
+            },{
+                station:"Starport (Real Street)",
+                address:"Sto. Rosario, Santa Cruz, Zambales"
+            },{
+                station:"PTT Gas Station (Lipay)",
+                address:"2 Lipay Bridge, Sta. Cruz, Zambales"
+            },{
+                station:"Starport Gas Service Station",
+                address:"Lipay, Santa Cruz, Zambales"
+            },{
+                station:"Petron (Lipay)",
+                address:"Lipay, Sta. Cruz, Zambales"
+            },{
+                station:"Jetti (Lipay)",
+                address:"Lipay, Zambales - Pangasinan Rd, Santa Cruz, Zambales"
+            },{
+                station:"CETRUM GASOLINE STATION (Lipay)",
+                address:"Lipay, Olongapo - Bugallon Rd, Santa Cruz, Zambales"
+            },{
+                station:"Petro Gazz Sta. Cruz",
+                address:"Bayto, Zambales - Pangasinan Rd, Santa Cruz, Zambales"
+            },{
+                station:"Casulibay",
+                address:"196 Zambales - Pangasinan Rd, Santa Cruz, Zambales"
+            }
+        ],
+
+        "CANDELARIA": [
+            {
+                station:"808 Fuel",
+                address:"Lauis, Candelaria, Zambales"
+            },{
+                station:"Petro Gazz (Catol)",
+                address:"Catol, Candelaria, Zambales"
+            },{
+                station:"Centrum Fuel (Catol)",
+                address:"Catol, Candelaria, Zambales"
+            },{
+                station:"1Petrol (Catol)",
+                address:"Catol, Candelaria, Zambales"
+            },{
+                station:"Agra Gas (Pamibian)",
+                address:"Pamibian, Candelaria, Zambales"
+            },{
+                station:"LRE Supreme Fuel Gasoline Station",
+                address:"Poblacion, Candelaria, Zambales"
+            },{
+                station:"NCM GASOLINE STATION",
+                address:"San Roque, Candelaria, Zambales"
+            },{
+                station:"Petron (Sinabacan)",
+                address:"Sinabacan, Candelaria, Zambales"
+            },{
+                station:"PTT (Uacon)",
+                address:"Uacon, Candelaria Town Proper, Candelaria, Zambales"
+            }
+        ],
+
+        "MASINLOC": [
+            {
+                station:"PTT Station Masinloc",
+                address:"Togue, Taltal Masinloc, Zambales"
+            },{
+                station:"Agra Gas South Poblacion",
+                address:"Rosario St, North Poblacion, Masinloc Zambales"
+            },{
+                station:"Big-H",
+                address:"Purok 3, Collat, Masinloc, Zambales"
+            },{
+                station:"BOSS Gasoline Station",
+                address:"Collat, Masinloc, Zambales"
+            },{
+                station:"1 PetroL-SDG",
+                address:"Inhobol,Olongapo - Bugallon Rd, Masinloc, Zambales"
+            },{
+                station:"GabRon Gasoline Station",
+                address:"Inhobol,Olongapo - Bugallon Rd, Masinloc, Zambales"
+            },{
+                station:"JAYHAN",
+                address:"Inhobol, Masinloc, Zambales"
+            }
+        ],
+
+        "PALAUIG": [
+            {
+                station:"PTT Gas Station (PTT Palauig)",
+                address:"Amungan - Palauig-Banlog Rd, Palauig, Zambales"
+            },{
+                station:"Petron (Palauig)",
+                address:"East Poblacion, Palauig, Zambales"
+            },{
+                station:"King Fuel",
+                address:"Sto Tomas, Amungan - Palauig-Banlog Rd, Palauig, Zambales"
+            }
+        ],
+
+        "IBA": [
+            {
+                station:"MC Petron Bulilit Station (Palanginan)",
+                address:"Purok 4 National Highway, Palanginan, Iba, Zambales"
+            },{
+                station:"1Petrol (Palanginan)",
+                address:"Palanginan, Iba, Zambales"
+            },{
+                station:"Phoenix Gas Station (Palanginan)",
+                address:"Palanginan, Iba, Zambales"
+            },{
+                station:"PTT IBA Gasoline Station (Palanginan)",
+                address:"Palanginan, Iba, Zambales"
+            },{
+                station:"Primer Gas Station (Govic Highway)",
+                address:"Govic Hwy, Iba, Zambales"
+            },{
+                station:"Centrum Fuel (Dirita)",
+                address:"Zamora St, Iba, Zambales"
+            },{
+                station:"Petron (Zone 1, Iba)",
+                address:"Zone 1 ,Olongapo - Bugallon Rd, Iba, Zambales"
+            },{
+                station:"Primer Jr. Gas Station (Near Public market)",
+                address:"Dirita Baloguen-Govic Hwy, Iba, Zambales"
+            },{
+                station:"PTT IBA Gasoline Station (Dirita)",
+                address:"Dirita Baloguen-Govic Hwy, Iba, Zambales"
+            },{
+                station:"BLC Gas Station (Sto. Rosario)",
+                address:"Sto. Rosario, Iba, Zambales"
+            },{
+                station:"Centrum Fuel (Bangantalinga)",
+                address:"Purok 1 Bangantalinga, Iba, Zambales"
+            },{
+                station:"Phoenix Gas Station (Bangantalinga)",
+                address:"Bangantalinga, Iba, Zambales"
+            },{
+                station:"MJQ Fuel",
+                address:"Bangatalinga- Olongapo - Bugallon Rd, Iba, Zambales"
+            },{
+                station:"Traveller's Petron Servicenter (Victory liner)",
+                address:"Palanginan, Olongapo - Bugallon Rd, Iba, 2201 Zambales"
+            },{
+                station:"Agra Gas (Amungan)",
+                address:"Amungan,Iba, Zambales"
+            }
+        ],
+
+        "BOTOLAN": [
+            {
+                station:"Flying V Gas Station",
+                address:"Cawayan, Botolan, Zambales"
+            },{
+                station:"Agra Gas (Tampo)",
+                address:"Tampo, Botolan, Zambales"
+            },{
+                station:"Primer Gas Station (Batonlapoc)",
+                address:"Batonlapoc, Botolan, Zambales"
+            },{
+                station:"RMS Micro Gas Station (Taugtog)",
+                address:"Zambales - Tarlac Rd, Botolan, Zambales"
+            },{
+                station:"Primer Gas (Taugtog)",
+                address:"Taugtog, Botolan, Zambales"
+            },{
+                station:"RMS micro gas station (San Miguel)",
+                address:"San Miguel, Botolan, Zambales"
+            },{
+                station:"Primer Gas Station (Bucao)",
+                address:"Bucao, Botolan, Zambales"
+            }
+        ]
+    };
+
+    // Changing the list of stations based on municipality selection
+    document.getElementById("municipality").addEventListener("change", function () {
+
+        const municipality = this.value;
+        const locationSelect = document.getElementById("specificLocation");
+
+        locationSelect.innerHTML =
+            '<option value="">Select Station</option>';
+
+        
+        document.getElementById("stationAddress").value = "";
+        
+        if (!municipality || !locations[municipality]) return;
+
+        locations[municipality].forEach(item => {
+
+            const option = document.createElement("option");
+
+            option.value = item.station;
+            option.textContent = item.station;
+
+            // store address
+            option.dataset.address = item.address;
+
+            locationSelect.appendChild(option);
+
+        });
+
+    });
+
+    // When station is selected, fill the address field
+    document.getElementById("specificLocation").addEventListener("change", function() {
+
+        const selectedOption = this.options[this.selectedIndex];
+
+        document.getElementById("stationAddress").value =
+            selectedOption.dataset.address || "";
+
+    });
+
+    // CONNECTION FOR GDRIVE BACKEND
     const SCRIPT_URL =
     "https://script.google.com/macros/s/AKfycbzwJeSckxflzcOW9o_PHcAARwqPoMSWeuceF_Z0nHW2ELtmjD-hQx4RVZOAg6C669Ba/exec";
 
+    // Set today's date in the date input
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("date").value = today;
 
     let lat = "";
     let lng = "";
+    const gpsStatus = document.getElementById("gpsStatus");
 
-    navigator.geolocation.getCurrentPosition(
-    pos => {
-        lat = pos.coords.latitude;
-        lng = pos.coords.longitude;
-        document.getElementById("lat").innerText = lat;
-        document.getElementById("lng").innerText = lng;
-    },
-    err => {
-        document.getElementById("lat").innerText = "N/A";
-        document.getElementById("lng").innerText = "N/A";
-    }
+    // Getting user's GPS location
+    navigator.geolocation.watchPosition(
+        pos => {
+
+            lat = pos.coords.latitude;
+            lng = pos.coords.longitude;
+
+            gpsStatus.innerHTML =
+                "📍 Latitude: " + Number(lat).toFixed(6) +
+                "<br>📍 Longitude: " + Number(lng).toFixed(6);
+
+        },
+        err => {
+
+            lat = "";
+            lng = "";
+
+            gpsStatus.className = "gps-status gps-error";
+            gpsStatus.innerHTML = "❌ Unable to acquire GPS location";
+
+        }
     );
 
+    // Function to open camera after checking if GPS location is acquired
     function openCamera(){
+        if(lat === "" || lng === ""){
+            alert("Waiting for GPS location. Please try again in a few seconds.");
+            return;
+        }
+
         document.getElementById("camera").click();
     }
 
+    // When user captures an image
     document.getElementById("camera").addEventListener("change", function(e){
 
-    const file = e.target.files[0];
-    if(!file) return;
+        const file = e.target.files[0];
+        if(!file) return;
 
-    const municipality = document.getElementById("municipality").value;
-    if(!municipality){
-        alert("Select municipality first");
-        return;
-    }
+        const municipality = document.getElementById("municipality").value;
+        if(!municipality){
+            alert("Select municipality first");
+            return;
+        }
 
-    document.getElementById("preview").innerHTML =
-    `<img src="${URL.createObjectURL(file)}">`;
+        const station = document.getElementById("specificLocation").value;
+        if(!station){
+            alert("Select station first");
+            return;
+        }
 
-    const reader = new FileReader();
+        document.getElementById("preview").innerHTML = `<img src="${URL.createObjectURL(file)}">`;
 
-    reader.onload = function(){
+        const reader = new FileReader();
 
-        const base64 = reader.result.split(",")[1];
+        // When the image is loaded, add watermark and EXIF data
+        reader.onload = function () {
 
-        document.getElementById("status").innerHTML =
-        "<span class='loading'>Uploading...</span>";
+            const imageData = reader.result;
+            const img = new Image();
 
-        fetch(SCRIPT_URL, {
-            method: "POST",
-            body: new URLSearchParams({
-            municipality,
-            dateFolder: today,
-            fileName: file.name,
-            mimeType: file.type,
-            base64Data: base64,
-            latitude: lat,
-            longitude: lng
-            })
-        })
+            // Once the image is loaded, we can draw it on a canvas and add the watermark
+            img.onload = function () {
 
-        .then(async res => {
-            const text = await res.text();   // IMPORTANT FIX
-            console.log("RAW RESPONSE:", text);
-            return JSON.parse(text);
-        })
+                const municipality = document.getElementById("municipality").value;
+                const station = document.getElementById("specificLocation").value;
+                const selectedOption = document.getElementById("specificLocation").selectedOptions[0];
+                const address = selectedOption.dataset.address || "";
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
 
-        .then(data => {
-            if (data.success) {
-                document.getElementById("status").innerHTML =
-                "<span class='success'>" + data.message + "</span>";
-            } else {
-                document.getElementById("status").innerHTML =
-                "<span class='error'>" + data.message + "</span>";
-            }
-        })
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
 
-        .catch(err => {
-            console.error(err);
-            document.getElementById("status").innerHTML =
-            "<span class='error'>Backend not reachable</span>";
-        });
+                const dateTime = new Date().toLocaleString();
+                const watermarkLines = [ station, 
+                    address + ", REGION III",
+                    lat.toFixed(6) + ", " + lng.toFixed(6),
+                    dateTime
+                ];
+                const fontSize = Math.max( 22, Math.round(canvas.width / 45));
+                const lineHeight = fontSize + 10;
+                const padding = 20;
+                const boxHeight = (watermarkLines.length * lineHeight) + (padding * 2);
 
-    };
+                ctx.fillStyle = "rgba(0,0,0,0.60)";
+                ctx.fillRect(
+                    0,
+                    canvas.height - boxHeight,
+                    canvas.width,
+                    boxHeight
+                );
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold " + fontSize + "px Arial";
 
-    reader.readAsDataURL(file);
+                // Draw each line of the watermark
+                watermarkLines.forEach((line, index) => {
+
+                    ctx.fillText(
+                        line,
+                        padding,
+                        canvas.height -
+                        boxHeight +
+                        padding +
+                        ((index + 1) * lineHeight)
+                    );
+
+                });
+
+                let finalImageData = canvas.toDataURL( "image/jpeg", 0.95);
+
+                // Adding EXIF data
+                try {
+
+                    let exifObj = {
+                        "0th": {},
+                        Exif: {},
+                        GPS: {},
+                        "1st": {},
+                        thumbnail: null
+                    };
+
+                    // Try to load existing EXIF data if present, so we don't overwrite it completely
+                    try {
+
+                        exifObj = piexif.load(imageData);
+
+                    } catch(ex) {
+
+                        console.log("No original EXIF found");
+
+                    }
+
+                    // Convert decimal coordinates to DMS format required by EXIF
+                    function toDMS(decimal) {
+
+                        const absolute = Math.abs(Number(decimal));
+                        const degrees = Math.floor(absolute);
+                        const minutesFloat = (absolute - degrees) * 60;
+                        const minutes = Math.floor(minutesFloat);
+                        const seconds = (minutesFloat - minutes) * 60;
+
+                        return [
+                            [degrees, 1],
+                            [minutes, 1],
+                            [
+                                Math.round(
+                                    seconds * 10000
+                                ),
+                                10000
+                            ]
+                        ];
+
+                    }
+
+                    exifObj.GPS = exifObj.GPS || {};
+                    exifObj.GPS[ piexif.GPSIFD.GPSLatitudeRef ] = Number(lat) >= 0 ? "N" : "S";
+                    exifObj.GPS[ piexif.GPSIFD.GPSLatitude ] = toDMS(lat);
+                    exifObj.GPS[ piexif.GPSIFD.GPSLongitudeRef ] =  Number(lng) >= 0 ? "E" : "W";
+                    exifObj.GPS[ piexif.GPSIFD.GPSLongitude ] = toDMS(lng);
+
+                    // Create custom description
+                    const description =
+                    "Municipality: " + municipality + "\n" +
+                    "Station: " + station + "\n" +
+                    "Address: " + address + ", REGION III" + "\n" +
+                    "Latitude: " + Number(lat).toFixed(6) + "\n" +
+                    "Longitude: " + Number(lng).toFixed(6) + "\n" +
+                    "Date: " + dateTime;
+
+                    // Store description in EXIF 
+                    exifObj["0th"] = exifObj["0th"] || {};
+                    exifObj["0th"][  piexif.ImageIFD.ImageDescription ] = description;
+                    exifObj.Exif = exifObj.Exif || {};
+
+                    const exifDate = new Date().toISOString().replace("T"," ").substring(0,19);
+
+                    exifObj.Exif[ piexif.ExifIFD.DateTimeOriginal ] = exifDate;
+                    exifObj.Exif[ piexif.ExifIFD.DateTimeDigitized ] = exifDate;
+
+                    const exifBytes = piexif.dump(exifObj);
+
+                    finalImageData = piexif.insert( exifBytes, finalImageData );
+
+                }
+                // If there's an error with EXIF processing, log it but continue with the image upload
+                catch(error) {
+
+                    console.error( "EXIF error:", error );
+
+                }
+
+                document.getElementById("preview").innerHTML = `<img src="${finalImageData}">`;
+
+                const base64 = finalImageData.split(",")[1];
+
+                uploadImage(base64);
+
+            };
+
+            img.src = imageData;
+
+        };
+
+        reader.readAsDataURL(file);
 
     });
 
-</script>
+    // Function to upload image to Google Drive via Apps Script
+    function uploadImage(base64){
 
+        document.getElementById("status").innerHTML = "<span class='loading'>Uploading...</span>";
+
+        // Send POST request to Apps Script with image data and metadata
+        fetch(SCRIPT_URL, {
+            method: "POST",
+            body: new URLSearchParams({
+                municipality: document.getElementById("municipality").value,
+                station: document.getElementById("specificLocation").value,
+                address: document.getElementById("stationAddress").value,
+                dateFolder: today,
+                fileName: document.getElementById("camera").files[0].name,
+                mimeType: document.getElementById("camera").files[0].type,
+                base64Data: base64,
+                latitude: lat,
+                longitude: lng
+            })
+        })
+
+        // Parse response from Apps Script
+        .then(async res => {
+            const text = await res.text();
+            return JSON.parse(text);
+        })
+
+        // Update status message based on response
+        .then(data => {
+
+            if(data.success){
+
+                document.getElementById("status").innerHTML = "<span class='success'>" + data.message + "</span>";
+
+            }else{
+
+                document.getElementById("status").innerHTML = "<span class='error'>" + data.message + "</span>";
+
+            }
+
+        })
+
+        // Handle network or other errors
+        .catch(err => {
+
+            console.error(err);
+
+            document.getElementById("status").innerHTML = "<span class='error'>Backend not reachable</span>";
+
+        });
+    }
+</script>
 </body>
 </html>
